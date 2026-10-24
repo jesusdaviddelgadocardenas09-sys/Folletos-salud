@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tríptico Educativo - Control de la Diabetes Mellitus</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        medical: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        mint: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+            color: #334155;
+            min-height: 100vh;
+        }
+
+        /* Perspective and 3D Flip Effect */
+        .perspective-1000 {
+            perspective: 1200px;
+        }
+
+        .flip-card-inner {
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .flip-card-inner.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front, .flip-card-back {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .flip-card-back {
+            transform: rotateY(180deg);
+        }
+
+        /* Styles for Print / Tri-fold Layout */
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 0;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-container {
+                display: block !important;
+                width: 297mm;
+                height: 210mm;
+                page-break-after: always;
+                page-break-inside: avoid;
+                margin: 0;
+                padding: 6mm;
+                box-sizing: border-box;
+            }
+            .triptych-grid {
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 5mm !important;
+                height: 100% !important;
+            }
+            .triptych-col {
+                border: 1px dashed #cbd5e1 !important;
+                padding: 4mm !important;
+                border-radius: 8px !important;
+                height: 100% !important;
+                overflow: hidden !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+                background: white !important;
+                box-shadow: none !important;
+            }
+        }
+
+        /* Accordion transition */
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+            opacity: 0;
+        }
+        .accordion-content.active {
+            max-height: 220px;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="p-2 sm:p-4 md:p-8">
+
+    <!-- HEADER / NAVIGATION (NO-PRINT) -->
+    <header class="no-print max-w-7xl mx-auto mb-6 bg-slate-800/90 backdrop-blur-md p-4 rounded-2xl border border-slate-700/60 shadow-2xl flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 flex items-center justify-center text-white shadow-lg shadow-sky-600/30">
+                <i class="fa-solid fa-dna text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-white font-bold text-lg leading-tight">Entendiendo la Diabetes Mellitus</h1>
+                <p class="text-slate-400 text-xs">Folleto Tríptico Educativo para Pacientes</p>
+            </div>
+        </div>
+
+        <!-- View Controls -->
+        <div class="flex flex-wrap items-center gap-2">
+            <button onclick="setView('interactive')" id="btn-interactive" class="px-4 py-2 rounded-xl font-medium text-xs sm:text-sm transition flex items-center gap-2 bg-sky-600 text-white shadow-lg shadow-sky-600/20">
+                <i class="fa-solid fa-rotate"></i> Vista Interactiva (Voltear)
+            </button>
+            <button onclick="setView('spread')" id="btn-spread" class="px-4 py-2 rounded-xl font-medium text-xs sm:text-sm text-slate-300 hover:bg-slate-700/50 transition flex items-center gap-2">
+                <i class="fa-solid fa-table-columns"></i> Vista Plana Expandida
+            </button>
+            <button onclick="window.print()" class="px-4 py-2 rounded-xl font-semibold text-xs sm:text-sm bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg shadow-teal-500/20 transition flex items-center gap-2">
+                <i class="fa-solid fa-print"></i> Imprimir / Guardar PDF
+            </button>
+        </div>
+    </header>
+
+    <!-- FLIP CONTROLLER INDICATOR -->
+    <div id="interactive-controls" class="no-print max-w-7xl mx-auto mb-4 flex justify-center">
+        <button onclick="flipCard()" class="bg-sky-700 hover:bg-sky-600 text-white px-6 py-2.5 rounded-full font-semibold shadow-lg shadow-sky-900/40 transition flex items-center gap-2 border border-sky-500/30">
+            <i class="fa-solid fa-arrows-rotate text-sm"></i> Girar Tríptico (<span id="side-indicator">Ver Cara Interior - Módulos Médicos</span>)
+        </button>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- INTERACTIVE FLIP VIEW (MAIN SCREEN VIEW) -->
+    <!-- ========================================================= -->
+    <main id="interactive-view" class="no-print max-w-7xl mx-auto perspective-1000 mb-12">
+        <div id="card-inner" class="flip-card-inner relative w-full min-h-[720px]">
+            
+            <!-- OUTER FACE (PÁGINA 1: PREGUNTAS/COMPROBACIÓN, MENSAJE FINAL/CHECKLIST Y PORTADA) -->
+            <div class="flip-card-front absolute w-full h-full bg-slate-900 rounded-3xl p-4 sm:p-6 border border-slate-800 shadow-2xl">
+                <div class="text-center mb-4">
+                    <span class="bg-sky-500/10 text-sky-400 text-xs px-3 py-1 rounded-full border border-sky-500/20 font-semibold tracking-wider uppercase">Cara Exterior (Solapa Interior, Contraportada y Portada)</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    
+                    <!-- Panel 2 (Solapa Interior): Comprueba tus Conocimientos -->
+                    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-md flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 text-sky-900 font-bold text-sm mb-3 border-b border-sky-100 pb-2">
+                                <i class="fa-solid fa-brain text-sky-600"></i> PANEL 2: Comprueba tus Conocimientos
+                            </div>
+                            
+                            <p class="text-xs text-slate-600 mb-3 leading-relaxed">
+                                Haz clic en las preguntas para poner a prueba lo aprendido en la charla educativa:
+                            </p>
+
+                            <!-- Preguntas Rápidas de Comprobación -->
+                            <div class="space-y-2 mb-4">
+                                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                                    <button onclick="toggleAccordion('qa1')" class="w-full text-left p-2.5 bg-slate-50 hover:bg-sky-50 text-[11px] font-semibold text-slate-700 flex justify-between items-center transition">
+                                        <span>1. ¿Cuál es la función de la insulina?</span>
+                                        <i class="fa-solid fa-chevron-down text-sky-600 text-xs"></i>
+                                    </button>
+                                    <div id="qa1" class="accordion-content p-2.5 text-[10px] bg-white text-slate-600 border-t border-slate-100">
+                                        Es la <strong>llave</strong> que abre la cerradura de las células para que la glucosa (azúcar) entre y proporcione energía al cuerpo.
+                                    </div>
+                                </div>
+
+                                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                                    <button onclick="toggleAccordion('qa2')" class="w-full text-left p-2.5 bg-slate-50 hover:bg-sky-50 text-[11px] font-semibold text-slate-700 flex justify-between items-center transition">
+                                        <span>2. ¿Por qué revisar los pies a diario?</span>
+                                        <i class="fa-solid fa-chevron-down text-sky-600 text-xs"></i>
+                                    </button>
+                                    <div id="qa2" class="accordion-content p-2.5 text-[10px] bg-white text-slate-600 border-t border-slate-100">
+                                        Porque la glucosa alta destruye los nervios produciendo pérdida de sensibilidad; una pequeña rozadura puede infectarse sin darte cuenta.
+                                    </div>
+                                </div>
+
+                                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                                    <button onclick="toggleAccordion('qa3')" class="w-full text-left p-2.5 bg-slate-50 hover:bg-sky-50 text-[11px] font-semibold text-slate-700 flex justify-between items-center transition">
+                                        <span>3. ¿Qué pasa al caminar 20-30 min?</span>
+                                        <i class="fa-solid fa-chevron-down text-sky-600 text-xs"></i>
+                                    </button>
+                                    <div id="qa3" class="accordion-content p-2.5 text-[10px] bg-white text-slate-600 border-t border-slate-100">
+                                        Los músculos activan transportadores (GLUT-4) que absorben la glucosa directamente de la sangre, <strong>¡sin requerir insulina!</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-[10px] text-emerald-900">
+                                <span class="font-bold block mb-1">💡 Recordatorio Clave:</span>
+                                La prevención activa y el control constante garantizan una calidad de vida óptima.
+                            </div>
+                        </div>
+
+                        <div class="mt-3 text-center text-[10px] text-slate-400">
+                            Educación Médica Preventiva • Salud Metabolica
+                        </div>
+                    </div>
+
+                    <!-- Panel 3 (Contraportada): Tu Salud en Tus Manos & Checklist -->
+                    <div class="bg-gradient-to-br from-slate-900 via-slate-800 to-sky-950 text-white rounded-2xl p-5 border border-slate-700 shadow-md flex flex-col justify-between relative overflow-hidden">
+                        <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-sky-500/10 rounded-full blur-2xl"></div>
+                        
+                        <div>
+                            <div class="w-12 h-12 bg-sky-500/20 rounded-2xl flex items-center justify-center text-sky-400 mb-3 border border-sky-500/30">
+                                <i class="fa-solid fa-hand-holding-medical text-xl"></i>
+                            </div>
+                            <h3 class="text-sky-400 font-bold text-sm tracking-wide uppercase mb-2">Tu Salud en Tus Manos</h3>
+                            <p class="text-xs text-slate-300 leading-relaxed italic mb-4">
+                                "La diabetes no es el fin de una vida plena; es el inicio de un compromiso de autocuidado con nuestro cuerpo. Con alimentación balanceada, actividad física constante, revisión diaria de pies y medicación a hora, se vive con tranquilidad."
+                            </p>
+
+                            <!-- Checklist Diario -->
+                            <div class="bg-slate-800/80 rounded-xl p-3 border border-slate-700/80 backdrop-blur-sm space-y-1.5">
+                                <span class="text-[11px] font-bold text-teal-300 block mb-1">📋 Checklist Diario de Autocuidado:</span>
+                                <div class="flex items-center gap-2 text-[10px] text-slate-200">
+                                    <i class="fa-solid fa-check text-emerald-400 text-xs"></i>
+                                    <span>Alimentación con fibra y porciones controladas</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-[10px] text-slate-200">
+                                    <i class="fa-solid fa-check text-emerald-400 text-xs"></i>
+                                    <span>Caminata continua de 20 a 30 minutos</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-[10px] text-slate-200">
+                                    <i class="fa-solid fa-check text-emerald-400 text-xs"></i>
+                                    <span>Inspección diaria de la piel y planta de los pies</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-[10px] text-slate-200">
+                                    <i class="fa-solid fa-check text-emerald-400 text-xs"></i>
+                                    <span>Toma de medicamentos e insulina a la hora</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 text-center text-[10px] text-slate-400">
+                            Charla Educativa • Diabetes Mellitus
+                        </div>
+                    </div>
+
+                    <!-- Panel 1 (Portada Principal): Entendiendo la Diabetes Mellitus -->
+                    <div class="bg-gradient-to-br from-sky-900 via-sky-800 to-teal-950 text-white rounded-2xl p-6 shadow-xl flex flex-col justify-between relative overflow-hidden border border-sky-700/50">
+                        <div class="absolute -right-12 -top-12 w-40 h-40 bg-white/10 rounded-full blur-xl"></div>
+                        <div class="absolute -left-12 -bottom-12 w-40 h-40 bg-teal-500/20 rounded-full blur-xl"></div>
+
+                        <div class="relative z-10">
+                            <span class="inline-block bg-white/10 backdrop-blur-md text-sky-200 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full border border-white/20 mb-4">Charla Educativa de Salud</span>
+                            <h2 class="text-2xl font-black text-white leading-tight mb-2 tracking-tight">ENTENDIENDO LA DIABETES MELLITUS</h2>
+                            <p class="text-xs text-sky-200 font-medium leading-relaxed">Mecanismos, Impacto y Control Integral</p>
+                        </div>
+
+                        <div class="relative z-10 my-6 text-center">
+                            <div class="w-24 h-24 mx-auto bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30 shadow-inner">
+                                <i class="fa-solid fa-cubes-stacked text-4xl text-teal-300 animate-pulse"></i>
+                            </div>
+                        </div>
+
+                        <div class="relative z-10 bg-black/30 backdrop-blur-md rounded-xl p-3 border border-white/10 text-center">
+                            <p class="text-[11px] text-sky-100 font-semibold">El poder del autocuidado, la ciencia y la prevención para una vida plena.</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- INNER FACE (PÁGINA 2: MÓDULO 1, MÓDULO 2 Y MÓDULO 3 & 4) -->
+            <div class="flip-card-back absolute w-full h-full bg-slate-900 rounded-3xl p-4 sm:p-6 border border-slate-800 shadow-2xl">
+                <div class="text-center mb-4">
+                    <span class="bg-sky-500/10 text-sky-400 text-xs px-3 py-1 rounded-full border border-sky-500/20 font-semibold tracking-wider uppercase">Cara Interior (Fisiología, Órganos Blanco y Tratamiento/Mitos)</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    
+                    <!-- Panel 4: Módulo 1 - La Fisiología de la Glucosa y la Insulina -->
+                    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-md flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 text-sky-900 font-bold text-sm mb-2 pb-1 border-b border-sky-100">
+                                <i class="fa-solid fa-key text-sky-600"></i> MÓDULO 1: Glucosa e Insulina
+                            </div>
+                            
+                            <p class="text-[11px] text-slate-700 mb-2">
+                                <strong>La Glucosa:</strong> Es la "leña para la chimenea" o gasolina del cuerpo. Proviene de los alimentos para dar energía a células, músculo y cerebro.
+                            </p>
+
+                            <!-- Diagrama SVG: Candado y Llave -->
+                            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-center mb-3">
+                                <span class="text-[11px] font-bold text-slate-800 block mb-1">🔑 El Mecanismo "Candado y Llave"</span>
+                                <svg viewBox="0 0 200 90" class="w-full h-20 mx-auto">
+                                    <!-- Célula (Casa) -->
+                                    <rect x="130" y="15" width="60" height="60" rx="10" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
+                                    <text x="160" y="48" fill="#075985" font-size="7" font-weight="bold" text-anchor="middle">CÉLULA</text>
+
+                                    <!-- Receptor / Cerradura -->
+                                    <rect x="124" y="35" width="8" height="20" rx="2" fill="#0284c7"/>
+
+                                    <!-- Insulina (Llave) -->
+                                    <path d="M 75 45 L 115 45" stroke="#16a34a" stroke-width="3" stroke-linecap="round"/>
+                                    <circle cx="75" cy="45" r="5" fill="none" stroke="#16a34a" stroke-width="2"/>
+                                    <path d="M 105 45 L 105 50 M 110 45 L 110 50" stroke="#16a34a" stroke-width="2"/>
+                                    <text x="95" y="38" fill="#15803d" font-size="7" font-weight="bold" text-anchor="middle">Insulina (Llave)</text>
+
+                                    <!-- Glucosa (Energía) -->
+                                    <circle cx="25" cy="45" r="8" fill="#f59e0b"/>
+                                    <text x="25" y="48" fill="white" font-size="7" font-weight="bold" text-anchor="middle">Glucosa</text>
+                                    <path d="M 37 45 L 60 45" stroke="#f59e0b" stroke-width="2" stroke-dasharray="2,2"/>
+                                </svg>
+                                <p class="text-[10px] text-slate-600 mt-1">
+                                    <strong>Diabetes Tipo 2:</strong> Pocas llaves o la cerradura está trabada (<em>Resistencia a la Insulina</em>). El azúcar no entra y se acumula en la sangre.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel 5: Módulo 2 - Órganos Blanco en Riesgo -->
+                    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-md flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 text-sky-900 font-bold text-sm mb-2 pb-1 border-b border-sky-100">
+                                <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> MÓDULO 2: Órganos Blanco en Riesgo
+                            </div>
+
+                            <p class="text-[10px] text-slate-600 mb-2">El exceso de azúcar prolongado es tóxico para las arterias y los tejidos:</p>
+
+                            <div class="space-y-2">
+                                <!-- Ojos -->
+                                <div class="p-2 bg-slate-50 rounded-xl border border-slate-200">
+                                    <div class="flex items-center gap-1.5 text-xs font-bold text-indigo-900 mb-0.5">
+                                        <i class="fa-solid fa-eye text-indigo-600"></i> 1. Ojos (Retinopatía)
+                                    </div>
+                                    <p class="text-[10px] text-slate-600">La sangre "espesa" inflama los micro-vasos de la retina, rompiéndolos o tapándolos. Riesgo de cataratas o ceguera.</p>
+                                </div>
+
+                                <!-- Pies y Nervios -->
+                                <div class="p-2 bg-slate-50 rounded-xl border border-slate-200">
+                                    <div class="flex items-center gap-1.5 text-xs font-bold text-rose-900 mb-0.5">
+                                        <i class="fa-solid fa-shoe-prints text-rose-600"></i> 2. Pies y Nervios (Pie Diabético)
+                                    </div>
+                                    <p class="text-[10px] text-slate-600">Destruye la cubierta de las fibras nerviosas ("cables"). Al perder sensibilidad, una pequeña herida no duele, se infecta y tarda en sanar.</p>
+                                </div>
+
+                                <!-- Riñones -->
+                                <div class="p-2 bg-slate-50 rounded-xl border border-slate-200">
+                                    <div class="flex items-center gap-1.5 text-xs font-bold text-teal-900 mb-0.5">
+                                        <i class="fa-solid fa-filter text-teal-600"></i> 3. Riñones (Nefropatía)
+                                    </div>
+                                    <p class="text-[10px] text-slate-600">El filtro renal sufre sobreesfuerzo para eliminar glucosa. Las "coladeras" se endurecen y escapan proteínas esenciales.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel 6: Módulo 3 y 4 - Estilos de Vida, Tratamiento y Mitos -->
+                    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-md flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 text-sky-900 font-bold text-sm mb-2 pb-1 border-b border-sky-100">
+                                <i class="fa-solid fa-heart-pulse text-emerald-600"></i> MÓDULOS 3 y 4: Control Integral
+                            </div>
+
+                            <div class="space-y-1.5 text-[10px]">
+                                <!-- Hábitos -->
+                                <div class="bg-emerald-50 p-2 rounded-lg border border-emerald-100">
+                                    <span class="font-bold text-emerald-900 block">🥗 Alimentación & Ejercicio:</span>
+                                    Prefiere carbohidratos de absorción lenta con fibra. Caminar activa transportadores <strong>GLUT-4</strong> en músculos que absorben azúcar sin insulina.
+                                </div>
+
+                                <div class="bg-sky-50 p-2 rounded-lg border border-sky-100">
+                                    <span class="font-bold text-sky-900 block">💊 Tratamiento Médico:</span>
+                                    Metformina/Glibenclamida destraban la cerradura celular. La Insulina inyectada solo repone la llave que el cuerpo dejó de producir.
+                                </div>
+
+                                <!-- Mitos -->
+                                <div class="bg-red-50 p-2 rounded-lg border border-red-200 text-red-900">
+                                    <span class="font-bold block">❌ Mito 1: "La insulina deja ciega"</span>
+                                    <p class="text-[9.5px] text-slate-700">FALSO. La ceguera la causa años de azúcar alto descontrolado. La insulina protege los órganos.</p>
+                                </div>
+
+                                <div class="bg-red-50 p-2 rounded-lg border border-red-200 text-red-900">
+                                    <span class="font-bold block">❌ Mito 2: "Puedo comer todo el pan que quiera"</span>
+                                    <p class="text-[9.5px] text-slate-700">FALSO. Las harinas (pan, arepa, pasta) se convierten 100% en glucosa al digerirse.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- ========================================================= -->
+    <!-- SPREAD / PRINTABLE VIEW (A4 LANDSCAPE PAGE BREAKS) -->
+    <!-- ========================================================= -->
+    <div id="spread-view" class="max-w-7xl mx-auto space-y-8 hidden">
+        
+        <!-- PAGE 1: EXTERIOR FACE -->
+        <div class="print-container bg-white p-6 rounded-2xl shadow-xl border border-slate-200">
+            <h3 class="no-print text-center font-bold text-slate-500 uppercase tracking-widest text-xs mb-3">CARA EXTERIOR (Página 1 para impresión)</h3>
+            <div class="triptych-grid grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <!-- Panel 2 (Solapa Interior): Conocimientos -->
+                <div class="triptych-col bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="text-sky-900 font-bold text-xs mb-2 border-b border-sky-200 pb-1">
+                            <i class="fa-solid fa-brain"></i> Comprueba tus Conocimientos
+                        </div>
+                        <div class="space-y-2 text-[9.5px] text-slate-700">
+                            <div class="bg-white p-2 rounded border border-slate-200">
+                                <strong>1. ¿Qué es la insulina?</strong><br>
+                                Es la llave que abre la célula para dejar entrar la glucosa.
+                            </div>
+                            <div class="bg-white p-2 rounded border border-slate-200">
+                                <strong>2. ¿Por qué revisar los pies?</strong><br>
+                                Se pierde sensibilidad nerviosa; previene úlceras o Pie Diabético.
+                            </div>
+                            <div class="bg-white p-2 rounded border border-slate-200">
+                                <strong>3. Beneficio de caminar:</strong><br>
+                                Activa GLUT-4 absorbiendo glucosa muscular SIN requerir insulina.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-[9px] text-slate-400 text-center mt-2">Charla Educativa de Salud</div>
+                </div>
+
+                <!-- Panel 3 (Contraportada): Autocuidado -->
+                <div class="triptych-col bg-slate-800 text-white p-4 rounded-xl flex flex-col justify-between">
+                    <div>
+                        <span class="text-sky-400 font-bold text-xs uppercase tracking-wider block mb-2">Tu Salud en Tus Manos</span>
+                        <p class="text-xs text-slate-300 italic leading-relaxed mb-3">
+                            "La diabetes no es el fin de una vida plena; es el inicio de un compromiso de autocuidado con nuestro cuerpo. Con alimentación balanceada, caminata y medicamentos, se vive con total tranquilidad."
+                        </p>
+                        <div class="bg-slate-700/60 p-2.5 rounded-lg border border-slate-600 text-[9.5px] space-y-1">
+                            <div class="text-emerald-300 font-bold mb-1">📋 Checklist Diario:</div>
+                            <p>• Alimentación consciente rica en fibra</p>
+                            <p>• Caminata diaria de 20-30 minutos</p>
+                            <p>• Inspección meticulosa de los pies</p>
+                            <p>• Toma de medicamentos e insulina</p>
+                        </div>
+                    </div>
+                    <div class="text-[9px] text-slate-400 text-center mt-2">Diabetes Mellitus • Control Integral</div>
+                </div>
+
+                <!-- Panel 1 (Portada Principal) -->
+                <div class="triptych-col bg-gradient-to-br from-sky-900 to-slate-900 text-white p-5 rounded-xl flex flex-col justify-between relative overflow-hidden">
+                    <div>
+                        <span class="inline-block bg-white/20 text-white text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full mb-3">Charla Educativa</span>
+                        <h2 class="text-xl font-black leading-tight text-white mb-2">ENTENDIENDO LA DIABETES MELLITUS</h2>
+                        <p class="text-xs text-sky-200">Mecanismos, Impacto y Control Integral</p>
+                    </div>
+                    <div class="my-4 text-center">
+                        <div class="w-16 h-16 mx-auto bg-white/10 rounded-full flex items-center justify-center border border-white/20">
+                            <i class="fa-solid fa-cubes-stacked text-2xl text-teal-300"></i>
+                        </div>
+                    </div>
+                    <div class="bg-black/20 p-2 rounded-lg border border-white/10 text-center text-[9px] text-sky-100">
+                        El poder del autocuidado para una vida plena
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- PAGE 2: INNER FACE -->
+        <div class="print-container bg-white p-6 rounded-2xl shadow-xl border border-slate-200">
+            <h3 class="no-print text-center font-bold text-slate-500 uppercase tracking-widest text-xs mb-3">CARA INTERIOR (Página 2 para impresión)</h3>
+            <div class="triptych-grid grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <!-- Panel 4: Fisiología -->
+                <div class="triptych-col bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="text-sky-900 font-bold text-xs mb-2 border-b border-sky-200 pb-1">
+                            <i class="fa-solid fa-key"></i> Módulo 1: Glucosa e Insulina
+                        </div>
+                        <p class="text-[10px] text-slate-700 mb-2">
+                            <strong>Glucosa:</strong> Leña para la chimenea del cuerpo. Proporciona energía a las células.
+                        </p>
+                        <div class="bg-white p-2 rounded border border-slate-200 text-[9px] mb-2">
+                            <strong>🔑 Candado y Llave:</strong> La insulina es la llave que abre la célula. En la Diabetes Tipo 2, falta la llave o la cerradura está trabada (<em>Resistencia a la Insulina</em>).
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel 5: Órganos Blanco -->
+                <div class="triptych-col bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="text-sky-900 font-bold text-xs mb-2 border-b border-sky-200 pb-1">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Módulo 2: Órganos Blanco
+                        </div>
+                        <div class="space-y-1.5 text-[9.5px]">
+                            <div class="bg-white p-1.5 rounded border border-slate-200">
+                                <strong>👁️ Ojos (Retinopatía):</strong> Sangre espesa rompe microvasos retinales.
+                            </div>
+                            <div class="bg-white p-1.5 rounded border border-slate-200">
+                                <strong>🦶 Pies & Nervios:</strong> Destruye envoltura de fibras nerviosas; causa pérdida de sensibilidad y úlceras.
+                            </div>
+                            <div class="bg-white p-1.5 rounded border border-slate-200">
+                                <strong>FILTER Riñones (Nefropatía):</strong> Sobreesfuerzo endurece las coladeras renales.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel 6: Hábitos y Mitos -->
+                <div class="triptych-col bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="text-sky-900 font-bold text-xs mb-2 border-b border-sky-200 pb-1">
+                            <i class="fa-solid fa-heart-pulse"></i> Módulo 3 y 4: Hábitos y Mitos
+                        </div>
+                        <div class="space-y-1 text-[9px]">
+                            <div class="bg-emerald-50 p-1.5 rounded text-emerald-900 border border-emerald-200">
+                                <strong>🚶‍♂️ Ejercicio:</strong> Caminar 20-30 min activa GLUT-4 absorbiendo glucosa sin insulina.
+                            </div>
+                            <div class="bg-red-50 p-1.5 rounded text-red-900 border border-red-200">
+                                <strong>❌ Mito 1:</strong> La insulina protege los órganos, no causa ceguera.
+                            </div>
+                            <div class="bg-red-50 p-1.5 rounded text-red-900 border border-red-200">
+                                <strong>❌ Mito 2:</strong> Las harinas (pan, arepas) se convierten 100% en glucosa.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT FOR INTERACTIVITY AND VIEW SWITCHING -->
+    <script>
+        let isFlipped = false;
+
+        function flipCard() {
+            const cardInner = document.getElementById('card-inner');
+            const sideIndicator = document.getElementById('side-indicator');
+            isFlipped = !isFlipped;
+            
+            if (isFlipped) {
+                cardInner.classList.add('is-flipped');
+                sideIndicator.textContent = 'Ver Cara Exterior - Portada y Autocuidado';
+            } else {
+                cardInner.classList.remove('is-flipped');
+                sideIndicator.textContent = 'Ver Cara Interior - Módulos Médicos';
+            }
+        }
+
+        function setView(mode) {
+            const interactiveView = document.getElementById('interactive-view');
+            const interactiveControls = document.getElementById('interactive-controls');
+            const spreadView = document.getElementById('spread-view');
+            
+            const btnInteractive = document.getElementById('btn-interactive');
+            const btnSpread = document.getElementById('btn-spread');
+
+            if (mode === 'interactive') {
+                interactiveView.classList.remove('hidden');
+                interactiveControls.classList.remove('hidden');
+                spreadView.classList.add('hidden');
+
+                btnInteractive.className = "px-4 py-2 rounded-xl font-medium text-xs sm:text-sm transition flex items-center gap-2 bg-sky-600 text-white shadow-lg shadow-sky-600/20";
+                btnSpread.className = "px-4 py-2 rounded-xl font-medium text-xs sm:text-sm text-slate-300 hover:bg-slate-700/50 transition flex items-center gap-2";
+            } else {
+                interactiveView.classList.add('hidden');
+                interactiveControls.classList.add('hidden');
+                spreadView.classList.remove('hidden');
+
+                btnSpread.className = "px-4 py-2 rounded-xl font-medium text-xs sm:text-sm transition flex items-center gap-2 bg-sky-600 text-white shadow-lg shadow-sky-600/20";
+                btnInteractive.className = "px-4 py-2 rounded-xl font-medium text-xs sm:text-sm text-slate-300 hover:bg-slate-700/50 transition flex items-center gap-2";
+            }
+        }
+
+        function toggleAccordion(id) {
+            const content = document.getElementById(id);
+            content.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>

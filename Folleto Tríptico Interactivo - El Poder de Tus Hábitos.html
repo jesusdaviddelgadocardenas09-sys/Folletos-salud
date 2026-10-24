@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tríptico Educativo - El Poder de Tus Hábitos</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        emerald: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        },
+                        teal: {
+                            600: '#0d9488',
+                            700: '#0f766e',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* CSS general y reglas de impresión */
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+            color: #334155;
+            min-height: 100vh;
+        }
+
+        /* Efecto 3D Flipping para vista interactiva */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+
+        .flip-card-inner {
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .flip-card-inner.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front, .flip-card-back {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .flip-card-back {
+            transform: rotateY(180deg);
+        }
+
+        /* Estilos específicos para impresión / Tríptico Horizontal */
+        @media print {
+            @page {
+                size: A4 landscape;
+                margin: 0;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-container {
+                display: block !important;
+                width: 297mm;
+                height: 210mm;
+                page-break-after: always;
+                page-break-inside: avoid;
+                margin: 0;
+                padding: 8mm;
+                box-sizing: border-box;
+            }
+            .triptych-grid {
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 6mm !important;
+                height: 100% !important;
+            }
+            .triptych-col {
+                border: 1px dashed #cbd5e1 !important;
+                padding: 5mm !important;
+                border-radius: 8px !important;
+                height: 100% !important;
+                overflow: hidden !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+                background: white !important;
+                box-shadow: none !important;
+            }
+        }
+
+        /* Animación suave de acordeón para preguntas */
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+            opacity: 0;
+        }
+        .accordion-content.active {
+            max-height: 200px;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="p-2 sm:p-4 md:p-8">
+
+    <!-- BARRA DE NAVEGACIÓN Y CONTROLES (NO IMPRIMIBLE) -->
+    <header class="no-print max-w-7xl mx-auto mb-6 bg-slate-800/80 backdrop-blur-md p-4 rounded-2xl border border-slate-700/50 shadow-2xl flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
+                <i class="fa-solid fa-heart-pulse text-xl"></i>
+            </div>
+            <div>
+                <h1 class="text-white font-bold text-lg leading-tight">El Poder de Tus Hábitos</h1>
+                <p class="text-slate-400 text-xs">Folleto Tríptico Interactivo y Portable</p>
+            </div>
+        </div>
+
+        <!-- Controles de Vista -->
+        <div class="flex flex-wrap items-center gap-2">
+            <button onclick="setView('interactive')" id="btn-interactive" class="px-4 py-2 rounded-xl font-medium text-xs sm:text-sm transition flex items-center gap-2 bg-emerald-500 text-white shadow-lg shadow-emerald-500/20">
+                <i class="fa-solid fa-[#fa-rotate]"></i> Vista Interactiva (Voltear)
+            </button>
+            <button onclick="setView('spread')" id="btn-spread" class="px-4 py-2 rounded-xl font-medium text-xs sm:text-sm text-slate-300 hover:bg-slate-700/50 transition flex items-center gap-2">
+                <i class="fa-solid fa-[#fa-table-columns]"></i> Vista Expandida
+            </button>
+            <button onclick="window.print()" class="px-4 py-2 rounded-xl font-semibold text-xs sm:text-sm bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white shadow-lg shadow-orange-500/20 transition flex items-center gap-2">
+                <i class="fa-solid fa-print"></i> Imprimir / PDF
+            </button>
+        </div>
+    </header>
+
+    <!-- INDICADOR DE CARA EN MODO INTERACTIVO -->
+    <div id="interactive-controls" class="no-print max-w-7xl mx-auto mb-4 flex justify-center gap-4">
+        <button onclick="flipCard()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-full font-semibold shadow-lg shadow-emerald-900/40 transition flex items-center gap-2">
+            <i class="fa-solid fa-repeat text-sm"></i> Girar Tríptico (<span id="side-indicator">Ver Cara Interior</span>)
+        </button>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- MODO INTERACTIVO FLIP (VISTA PANTALLA) -->
+    <!-- ========================================================= -->
+    <main id="interactive-view" class="no-print max-w-7xl mx-auto perspective-1000 mb-12">
+        <div id="card-inner" class="flip-card-inner relative w-full min-h-[700px]">
+            
+            <!-- CARA EXTERIOR INTERACTIVA -->
+            <div class="flip-card-front absolute w-full h-full bg-slate-900 rounded-3xl p-4 sm:p-6 border border-slate-800 shadow-2xl">
+                <div class="text-center mb-4">
+                    <span class="bg-emerald-500/10 text-emerald-400 text-xs px-3 py-1 rounded-full border border-emerald-500/20 font-semibold tracking-wider uppercase">Cara Exterior (Portada, Cierre y Evaluación)</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Columna 5: Solapa Interior Derecha / Reflexión -->
+                    <div id="panel-col5" class="bg-white rounded-2xl p-5 border border-slate-200 shadow-md flex flex-col justify-between">
+                        <!-- Content renderized dynamically or replicated -->
+                        <div>
+                            <div class="flex items-center gap-2 text-emerald-700 font-bold text-sm mb-3 border-b border-emerald-100 pb-2">
+                                <i class="fa-solid fa-clipboard-question text-emerald-600"></i> Auto-Evaluación Rápida
+                            </div>
+                            <p class="text-xs text-slate-500 mb-3">Haz clic en cada pregunta para revelar la respuesta científica:</p>
+                            
+                            <div class="space-y-2">
+                                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                                    <button onclick="toggleAccordion('qa1')" class="w-full text-left p-2.5 bg-slate-50 hover:bg-emerald-50 text-xs font-semibold text-slate-700 flex justify-between items-center transition">
+                                        <span>1. ¿Qué pasa al caminar 30 min?</span>
+                                        <i class="fa-solid fa-chevron-down text-emerald-600 text-xs"></i>
+                                    </button>
+                                    <div id="qa1" class="accordion-content p-2.5 text-xs bg-white text-slate-600 border-t border-slate-100">
+                                        Las arterias liberan <strong>óxido nítrico</strong> ganando elasticidad y bajando la presión. El cerebro produce <strong>dopamina y endorfinas</strong> reduciendo estrés y ansiedad.
+                                    </div>
+                                </div>
+
+                                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                                    <button onclick="toggleAccordion('qa2')" class="w-full text-left p-2.5 bg-slate-50 hover:bg-emerald-50 text-xs font-semibold text-slate-700 flex justify-between items-center transition">
+                                        <span>2. ¿Por qué 50% de vegetales?</span>
+                                        <i class="fa-solid fa-chevron-down text-emerald-600 text-xs"></i>
+                                    </button>
+                                    <div id="qa2" class="accordion-content p-2.5 text-xs bg-white text-slate-600 border-t border-slate-100">
+                                        La <strong>fibra</strong> crea una red intestinal que atrapa azúcares y colesterol, logrando que se absorban lentamente o se eliminen naturalmente.
+                                    </div>
+                                </div>
+
+                                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                                    <button onclick="toggleAccordion('qa3')" class="w-full text-left p-2.5 bg-slate-50 hover:bg-emerald-50 text-xs font-semibold text-slate-700 flex justify-between items-center transition">
+                                        <span>3. ¿Qué ocurre al dormir 7-8 hrs?</span>
+                                        <i class="fa-solid fa-chevron-down text-emerald-600 text-xs"></i>
+                                    </button>
+                                    <div id="qa3" class="accordion-content p-2.5 text-xs bg-white text-slate-600 border-t border-slate-100">
+                                        El <strong>sistema glinfático</strong> elimina toxinas cerebrales acumuladas, se reduce el cortisol y se repara el tejido celular.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-3 border-t border-slate-100 text-center">
+                            <span class="text-[10px] text-slate-400 font-medium">Educación para la Salud • Hábitos Vitales</span>
+                        </div>
+                    </div>
+
+                    <!-- Columna 6: Contraportada / Cierre Motivacional -->
+                    <div class="bg-gradient-to-br from-slate-900 to-slate-800 text-white rounded-2xl p-5 border border-slate-700 shadow-md flex flex-col justify-between relative overflow-hidden">
+                        <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl"></div>
+                        
+                        <div>
+                            <div class="w-12 h-12 bg-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-400 mb-4 border border-emerald-500/30">
+                                <i class="fa-solid fa-quote-left text-xl"></i>
+                            </div>
+                            <h3 class="text-emerald-400 font-bold text-sm tracking-wide uppercase mb-2">Mensaje Transformador</h3>
+                            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed italic mb-4">
+                                "Los estilos de vida saludables no son una meta estricta ni una prohibición, son un acto diario de respeto y amor hacia nuestro cuerpo. Cada caminata, cada vaso de agua y cada plato colorido son regalos para tu futuro."
+                            </p>
+                        </div>
+
+                        <div class="bg-slate-800/80 rounded-xl p-3 border border-slate-700/80 backdrop-blur-sm text-center">
+                            <i class="fa-solid fa-seedling text-emerald-400 text-lg mb-1"></i>
+                            <p class="text-xs text-slate-300 font-semibold">¡Comienza hoy con un pequeño cambio!</p>
+                            <p class="text-[10px] text-slate-400">Tu cuerpo te lo agradecerá siempre.</p>
+                        </div>
+                    </div>
+
+                    <!-- Columna 1: PORTADA PRINCIPAL -->
+                    <div class="bg-gradient-to-br from-emerald-700 via-emerald-800 to-teal-900 text-white rounded-2xl p-6 shadow-xl flex flex-col justify-between relative overflow-hidden border border-emerald-600/50">
+                        <!-- Elementos decorativos de fondo -->
+                        <div class="absolute -right-12 -top-12 w-40 h-40 bg-white/10 rounded-full blur-xl"></div>
+                        <div class="absolute -left-12 -bottom-12 w-40 h-40 bg-emerald-400/20 rounded-full blur-xl"></div>
+
+                        <div class="relative z-10">
+                            <span class="inline-block bg-white/10 backdrop-blur-md text-emerald-200 text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full border border-white/20 mb-4">Charla Educativa</span>
+                            <h2 class="text-2xl font-black text-white leading-tight mb-2 tracking-tight">EL PODER DE TUS HÁBITOS</h2>
+                            <p class="text-xs text-emerald-100 font-medium leading-relaxed">Ciencia y práctica para una vida plena y saludable.</p>
+                        </div>
+
+                        <div class="relative z-10 my-6 text-center">
+                            <div class="w-24 h-24 mx-auto bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30 shadow-inner">
+                                <i class="fa-solid fa-heart-pulse text-4xl text-emerald-300 animate-pulse"></i>
+                            </div>
+                        </div>
+
+                        <div class="relative z-10 bg-black/20 backdrop-blur-md rounded-xl p-3 border border-white/10 text-center">
+                            <p class="text-[11px] text-emerald-100 font-semibold">Rompe el mito: Vivir sano es fácil, delicioso y rejuvenecedor.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CARA INTERIOR INTERACTIVA -->
+            <div class="flip-card-back absolute w-full h-full bg-slate-900 rounded-3xl p-4 sm:p-6 border border-slate-800 shadow-2xl">
+                <div class="text-center mb-4">
+                    <span class="bg-teal-500/10 text-teal-400 text-xs px-3 py-1 rounded-full border border-teal-500/20 font-semibold tracking-wider uppercase">Cara Interior (Módulos de Salud)</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    
+                    <!-- Columna 2: Módulo 1 Alimentación -->
+                    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-md flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 text-emerald-800 font-bold text-sm mb-2 pb-1 border-b border-emerald-100">
+                                <i class="fa-solid fa-apple-whole text-emerald-600"></i> MÓDULO 1: Alimentación Saludable
+                            </div>
+                            <p class="text-xs text-slate-600 mb-2"><strong>Medicina Metabólica:</strong> Los ultraprocesados generan inflamación crónica. La comida real repara tu ADN.</p>
+                            
+                            <!-- Analogía -->
+                            <div class="bg-amber-50 border-l-4 border-amber-500 p-2 rounded-r-lg text-[11px] text-amber-900 mb-3">
+                                <strong>💡 Analogía:</strong> Gasolina de mala calidad arruina el motor de tu auto. El alimento natural lo mantiene limpio y potente.
+                            </div>
+
+                            <!-- Gráfico del Plato -->
+                            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-200 text-center mb-2">
+                                <span class="text-[11px] font-bold text-slate-700 block mb-1">El Método del Plato</span>
+                                <svg viewBox="0 0 200 120" class="w-full h-24 mx-auto">
+                                    <circle cx="100" cy="60" r="50" fill="#ffffff" stroke="#cbd5e1" stroke-width="3"/>
+                                    <!-- 50% Vegetales -->
+                                    <path d="M 100 60 L 100 10 A 50 50 0 0 0 100 110 Z" fill="#10b981" opacity="0.9"/>
+                                    <!-- 25% Proteinas -->
+                                    <path d="M 100 60 L 150 60 A 50 50 0 0 0 100 10 Z" fill="#3b82f6" opacity="0.9"/>
+                                    <!-- 25% Carbohidratos -->
+                                    <path d="M 100 60 L 100 110 A 50 50 0 0 0 150 60 Z" fill="#f59e0b" opacity="0.9"/>
+                                    <text x="70" y="63" fill="white" font-size="8" font-weight="bold">50% Vegetales</text>
+                                    <text x="122" y="42" fill="white" font-size="7" font-weight="bold">25% Proteína</text>
+                                    <text x="122" y="85" fill="white" font-size="7" font-weight="bold">25% Carb. Comp.</text>
+                                </svg>
+                            </div>
+
+                            <p class="text-[11px] text-slate-600"><strong>Fibra = Esponja:</strong> Enlaza colesterol y azúcares en el intestino impidiendo su exceso en sangre.</p>
+                        </div>
+                    </div>
+
+                    <!-- Columna 3: Módulo 2 Ejercicio -->
+                    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-md flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 text-teal-800 font-bold text-sm mb-2 pb-1 border-b border-teal-100">
+                                <i class="fa-solid fa-person-walking text-teal-600"></i> MÓDULO 2: Movimiento Natural
+                            </div>
+                            
+                            <div class="bg-teal-50 border-l-4 border-teal-500 p-2 rounded-r-lg text-[11px] text-teal-900 mb-3">
+                                <strong>🔑 La Bisagra:</strong> Sin movimiento la bisagra se oxida. El ejercicio es el aceite que rejuvenece tus articulaciones.
+                            </div>
+
+                            <div class="space-y-2 mb-3">
+                                <div class="p-2 bg-slate-50 rounded-lg border border-slate-100 flex items-start gap-2">
+                                    <i class="fa-solid fa-heart text-red-500 text-xs mt-0.5"></i>
+                                    <p class="text-[11px] text-slate-700"><strong>Corazón:</strong> Libera óxido nítrico, mejora flexibilidad arterial y baja presión.</p>
+                                </div>
+                                <div class="p-2 bg-slate-50 rounded-lg border border-slate-100 flex items-start gap-2">
+                                    <i class="fa-solid fa-bolt text-amber-500 text-xs mt-0.5"></i>
+                                    <p class="text-[11px] text-slate-700"><strong>Metabolismo:</strong> Músculos consumen glucosa y grasa circulante.</p>
+                                </div>
+                                <div class="p-2 bg-slate-50 rounded-lg border border-slate-100 flex items-start gap-2">
+                                    <i class="fa-solid fa-brain text-purple-500 text-xs mt-0.5"></i>
+                                    <p class="text-[11px] text-slate-700"><strong>Cerebro:</strong> Produce endorfinas y dopamina (felicidad sin ansiedad).</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-emerald-100 text-emerald-900 p-2.5 rounded-xl text-center text-xs font-bold">
+                            🚶‍♂️ Meta: 30 min diarios de caminata, baile o jardinería.
+                        </div>
+                    </div>
+
+                    <!-- Columna 4: Módulo 3 & Módulo 4 Sueño, Estrés y Mitos -->
+                    <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-md flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center gap-2 text-indigo-800 font-bold text-sm mb-2 pb-1 border-b border-indigo-100">
+                                <i class="fa-solid fa-moon text-indigo-600"></i> MÓDULO 3 y 4: Sueño y Mitos
+                            </div>
+
+                            <!-- Sueño y Estrés -->
+                            <div class="mb-3">
+                                <span class="text-xs font-bold text-slate-800 block mb-1">🌙 Limpieza Cerebral Nocturna</span>
+                                <p class="text-[11px] text-slate-600">El sistema glinfático limpia toxinas de noche. Dormir menos de 6h sube cortisol y desregula azúcar.</p>
+                                <div class="bg-indigo-50 text-indigo-900 p-1.5 rounded text-[10px] font-semibold mt-1">
+                                    🧘 Respiración 4-4-4: Inhala 4s, sostiene 4s, exhala 4s.
+                                </div>
+                            </div>
+
+                            <!-- Mitos -->
+                            <div class="space-y-1.5 border-t border-slate-100 pt-2">
+                                <span class="text-xs font-bold text-slate-800 block">❌ Mitos Desmentidos:</span>
+                                <div class="text-[10px] bg-red-50 text-red-900 p-1.5 rounded border border-red-100">
+                                    <strong>"Comer sano es caro":</strong> FALSO. Frutas de temporada, agua, granos y caminar son accesibles y gratis.
+                                </div>
+                                <div class="text-[10px] bg-red-50 text-red-900 p-1.5 rounded border border-red-100">
+                                    <strong>"Ya soy mayor para cambiar":</strong> FALSO. El cuerpo se regenera a cualquier edad reduciendo fármacos.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-2 text-center text-[10px] text-slate-400">
+                            Cero cigarrillo • Alcohol moderado
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- ========================================================= -->
+    <!-- VISTA IMPRIMIBLE / EXPANDIDA (FORMATO TRÍPTICO DE 2 PAGINAS) -->
+    <!-- ========================================================= -->
+    <div id="spread-view" class="max-w-7xl mx-auto space-y-8 hidden">
+        
+        <!-- PÁGINA 1: CARA EXTERIOR -->
+        <div class="print-container bg-white p-6 rounded-2xl shadow-xl border border-slate-200">
+            <h3 class="no-print text-center font-bold text-slate-500 uppercase tracking-widest text-xs mb-3">CARA EXTERIOR (Página 1 para impresión)</h3>
+            <div class="triptych-grid grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <!-- Columna Solapa Interior (Evaluación) -->
+                <div class="triptych-col bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="text-emerald-700 font-bold text-sm mb-2 border-b border-emerald-200 pb-1 flex items-center gap-1.5">
+                            <i class="fa-solid fa-clipboard-check"></i> Comprobación Rápida
+                        </div>
+                        <p class="text-[11px] text-slate-600 mb-3">Resumen de conceptos clave para el lector:</p>
+                        <div class="space-y-2 text-[11px]">
+                            <div class="bg-white p-2 rounded-lg border border-slate-200">
+                                <strong>1. Arterias y Ejercicio:</strong> Se libera óxido nítrico relajando arterias y dopamina que genera felicidad.
+                            </div>
+                            <div class="bg-white p-2 rounded-lg border border-slate-200">
+                                <strong>2. Fibra Vegetal:</strong> Atrapa el exceso de glucosa y colesterol impidiendo su absorción.
+                            </div>
+                            <div class="bg-white p-2 rounded-lg border border-slate-200">
+                                <strong>3. Sueño Reparador:</strong> Sistema glinfático depura toxinas cerebrales y estabiliza cortisol.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center pt-2 border-t border-slate-200 text-[10px] text-slate-400">
+                        Charla Educativa de Salud Preventiva
+                    </div>
+                </div>
+
+                <!-- Columna Contraportada (Cierre) -->
+                <div class="triptych-col bg-slate-800 text-white p-4 rounded-xl flex flex-col justify-between">
+                    <div>
+                        <div class="text-emerald-400 font-bold text-xs uppercase tracking-wider mb-2">Mensaje Final</div>
+                        <p class="text-xs text-slate-300 italic leading-relaxed mb-4">
+                            "Los estilos de vida saludables no son una meta estricta ni una prohibición, son un acto diario de respeto y amor hacia nuestro cuerpo. Cada caminata, cada plato colorido y cada noche de descanso son regalos para tu futuro."
+                        </p>
+                    </div>
+                    <div class="bg-slate-700/60 p-3 rounded-lg border border-slate-600 text-center">
+                        <i class="fa-solid fa-heart-pulse text-emerald-400 text-xl mb-1"></i>
+                        <p class="text-xs font-bold text-emerald-200">¡Tu salud en tus manos!</p>
+                        <p class="text-[10px] text-slate-400">Pequeños hábitos, grandes resultados.</p>
+                    </div>
+                </div>
+
+                <!-- Columna Portada Principal -->
+                <div class="triptych-col bg-gradient-to-br from-emerald-700 to-teal-900 text-white p-5 rounded-xl flex flex-col justify-between relative overflow-hidden">
+                    <div>
+                        <span class="inline-block bg-white/20 text-white text-[9px] font-bold uppercase tracking-widest px-2.5 py-0.5 rounded-full mb-3">Guía Práctica</span>
+                        <h2 class="text-2xl font-black leading-tight text-white mb-2">EL PODER DE TUS HÁBITOS</h2>
+                        <p class="text-xs text-emerald-100">Ciencia y práctica para una vida saludable.</p>
+                    </div>
+                    <div class="my-4 text-center">
+                        <div class="w-20 h-20 mx-auto bg-white/10 rounded-full flex items-center justify-center border border-white/20">
+                            <i class="fa-solid fa-heart-pulse text-3xl text-emerald-300"></i>
+                        </div>
+                    </div>
+                    <div class="bg-black/20 p-2.5 rounded-lg border border-white/10 text-center text-[10px] text-emerald-100">
+                        Aprende qué ocurre en tu cuerpo con cada decisión diaria.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- PÁGINA 2: CARA INTERIOR -->
+        <div class="print-container bg-white p-6 rounded-2xl shadow-xl border border-slate-200">
+            <h3 class="no-print text-center font-bold text-slate-500 uppercase tracking-widest text-xs mb-3">CARA INTERIOR (Página 2 para impresión)</h3>
+            <div class="triptych-grid grid grid-cols-1 md:grid-cols-3 gap-4">
+                
+                <!-- Columna Módulo 1 -->
+                <div class="triptych-col bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="text-emerald-800 font-bold text-xs mb-2 border-b border-emerald-200 pb-1">
+                            <i class="fa-solid fa-utensils text-emerald-600"></i> Módulo 1: Alimentación Saludable
+                        </div>
+                        <p class="text-[11px] text-slate-600 mb-2">Alimentos ultraprocesados inflaman arterias. La comida real aporta antioxidantes y repara ADN.</p>
+                        <div class="bg-amber-50 border-l-2 border-amber-500 p-2 text-[10px] text-amber-900 rounded mb-2">
+                            <strong>💡 Vehículo de Alta Gama:</strong> Alimento natural es gasolina de primera para tu motor corporal.
+                        </div>
+                        
+                        <!-- Método del plato impreso -->
+                        <div class="text-center my-2 bg-white p-2 rounded border border-slate-200">
+                            <span class="text-[10px] font-bold block mb-1">Método del Plato</span>
+                            <div class="grid grid-cols-3 gap-1 text-[9px] font-bold text-white">
+                                <div class="bg-emerald-500 p-1 rounded">50% Veg</div>
+                                <div class="bg-blue-500 p-1 rounded">25% Prot</div>
+                                <div class="bg-amber-500 p-1 rounded">25% Carb</div>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-slate-600"><strong>Fibra:</strong> Esponja que atrapa azúcares y colesterol intestinal.</p>
+                    </div>
+                </div>
+
+                <!-- Columna Módulo 2 -->
+                <div class="triptych-col bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="text-teal-800 font-bold text-xs mb-2 border-b border-teal-200 pb-1">
+                            <i class="fa-solid fa-person-running text-teal-600"></i> Módulo 2: Ejercicio y Fármaco
+                        </div>
+                        <div class="bg-teal-50 border-l-2 border-teal-500 p-2 text-[10px] text-teal-900 rounded mb-2">
+                            <strong>🔧 La Bisagra:</strong> El movimiento es el aceite natural contra la oxidación del cuerpo.
+                        </div>
+                        <ul class="text-[10px] space-y-1.5 text-slate-700 mb-2">
+                            <li><strong>• Corazón:</strong> Vasos elásticos y menos presión.</li>
+                            <li><strong>• Metabolismo:</strong> Músculos captan glucosa/grasa.</li>
+                            <li><strong>• Cerebro:</strong> Endorfinas y dopamina activa.</li>
+                        </ul>
+                    </div>
+                    <div class="bg-emerald-600 text-white p-2 rounded text-center text-[10px] font-bold">
+                        30 min diarios: Caminata, baile o jardín.
+                    </div>
+                </div>
+
+                <!-- Columna Módulo 3 y 4 -->
+                <div class="triptych-col bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
+                    <div>
+                        <div class="text-indigo-800 font-bold text-xs mb-2 border-b border-indigo-200 pb-1">
+                            <i class="fa-solid fa-bed text-indigo-600"></i> Módulo 3 y 4: Sueño y Mitos
+                        </div>
+                        <p class="text-[10px] text-slate-600 mb-2"><strong>Limpieza Nocturna:</strong> Sistema glinfático depura toxinas. Dormir &lt;6h eleva cortisol.</p>
+                        
+                        <div class="space-y-1.5 border-t border-slate-200 pt-2">
+                            <span class="text-[10px] font-bold text-slate-800 block">Mitos Desmentidos:</span>
+                            <div class="text-[9px] bg-red-50 text-red-900 p-1.5 rounded border border-red-200">
+                                <strong>1. ¿Es caro?</strong> FALSO. Agua, verduras locales y caminar son económicos/gratis.
+                            </div>
+                            <div class="text-[9px] bg-red-50 text-red-900 p-1.5 rounded border border-red-200">
+                                <strong>2. ¿Muy mayor?</strong> FALSO. El cuerpo se regenera a cualquier edad.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-[9px] text-slate-500 text-center">
+                        Técnica de Respiración: 4s Inhala - 4s Retén - 4s Exhala
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- LÓGICA INTERACTIVA EN JAVASCRIPT -->
+    <script>
+        let isFlipped = false;
+
+        function flipCard() {
+            const cardInner = document.getElementById('card-inner');
+            const sideIndicator = document.getElementById('side-indicator');
+            isFlipped = !isFlipped;
+            
+            if (isFlipped) {
+                cardInner.classList.add('is-flipped');
+                sideIndicator.textContent = 'Ver Cara Exterior';
+            } else {
+                cardInner.classList.remove('is-flipped');
+                sideIndicator.textContent = 'Ver Cara Interior';
+            }
+        }
+
+        function setView(mode) {
+            const interactiveView = document.getElementById('interactive-view');
+            const interactiveControls = document.getElementById('interactive-controls');
+            const spreadView = document.getElementById('spread-view');
+            
+            const btnInteractive = document.getElementById('btn-interactive');
+            const btnSpread = document.getElementById('btn-spread');
+
+            if (mode === 'interactive') {
+                interactiveView.classList.remove('hidden');
+                interactiveControls.classList.remove('hidden');
+                spreadView.classList.add('hidden');
+
+                btnInteractive.className = "px-4 py-2 rounded-xl font-medium text-xs sm:text-sm transition flex items-center gap-2 bg-emerald-500 text-white shadow-lg shadow-emerald-500/20";
+                btnSpread.className = "px-4 py-2 rounded-xl font-medium text-xs sm:text-sm text-slate-300 hover:bg-slate-700/50 transition flex items-center gap-2";
+            } else {
+                interactiveView.classList.add('hidden');
+                interactiveControls.classList.add('hidden');
+                spreadView.classList.remove('hidden');
+
+                btnSpread.className = "px-4 py-2 rounded-xl font-medium text-xs sm:text-sm transition flex items-center gap-2 bg-emerald-500 text-white shadow-lg shadow-emerald-500/20";
+                btnInteractive.className = "px-4 py-2 rounded-xl font-medium text-xs sm:text-sm text-slate-300 hover:bg-slate-700/50 transition flex items-center gap-2";
+            }
+        }
+
+        function toggleAccordion(id) {
+            const content = document.getElementById(id);
+            content.classList.toggle('active');
+        }
+    </script>
+</body>
+</html>
